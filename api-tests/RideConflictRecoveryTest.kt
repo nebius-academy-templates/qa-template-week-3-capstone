@@ -1,6 +1,7 @@
 package tests
 
 import client.RidesApi
+import io.qameta.allure.Allure
 import io.qameta.allure.AllureId
 import io.qameta.allure.Feature
 import model.ActiveRide
@@ -31,17 +32,19 @@ class RideConflictRecoveryTest : ApiTestCase() {
                 ApiTestData.SECOND_SEEDED_ORDER.to,
                 ApiTestData.TURQUOISE_TARIFF.id,
             )
-        lateinit var activeRide: ActiveRide
-        lateinit var retriedRide: ActiveRide
-
-        step("Create ride A") {
-            activeRide = createRide(token, firstRequest)
-            assertRideMatches(activeRide, firstRequest)
-        }
+        val activeRide =
+            Allure.step(
+                "Create ride A",
+                Allure.ThrowableRunnable {
+                    val ride = createRide(token, firstRequest)
+                    assertRideMatches(ride, firstRequest)
+                    ride
+                },
+            )
 
         step("Reject order B while ride A is active") {
-            activeRide = createRide(token, secondRequest)
-            assertRideMatches(activeRide, secondRequest)
+            val secondRide = createRide(token, secondRequest)
+            assertRideMatches(secondRide, secondRequest)
         }
 
         step("Ride A remains active with its original data") {
@@ -64,11 +67,16 @@ class RideConflictRecoveryTest : ApiTestCase() {
             assertThat(actual.error).isEqualTo(ErrorResponse(ApiTestData.NO_ACTIVE_RIDE_ERROR))
         }
 
-        step("Retry order B after cancelling ride A") {
-            retriedRide = createRide(token, secondRequest)
-            assertThat(retriedRide.id).isNotEqualTo(activeRide.id)
-            assertRideMatches(retriedRide, secondRequest)
-        }
+        val retriedRide =
+            Allure.step(
+                "Retry order B after cancelling ride A",
+                Allure.ThrowableRunnable {
+                    val ride = createRide(token, secondRequest)
+                    assertThat(ride.id).isNotEqualTo(activeRide.id)
+                    assertRideMatches(ride, secondRequest)
+                    ride
+                },
+            )
 
         step("The retried ride B is now active") {
             val actual = RidesApi.active(token)
