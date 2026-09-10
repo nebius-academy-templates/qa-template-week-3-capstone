@@ -26,6 +26,8 @@ class RideConflictTest : ApiTestCase() {
             val firstRide = createRideResponse.body
             assertFirstRideCreated(firstRide)
 
+            RidesApi.cancel(token, firstRide.id)
+
             val conflictingOrderResponse =
                 RidesApi.create(
                     token,
