@@ -1,4 +1,4 @@
-# Week 3 capstone: independent API test repair
+# Week 3 capstone: Independent API test repair
 
 | Material | Purpose |
 |---|---|
